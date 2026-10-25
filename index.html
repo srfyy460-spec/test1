@@ -4,8 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>پنل ربات</title>
+  <title>پنل کنترل ربات</title>
 
   <style>
     * {
@@ -30,6 +29,7 @@
       background: #191f2b;
       padding: 25px;
       border-radius: 20px;
+      box-shadow: 0 15px 50px rgba(0,0,0,.4);
     }
 
     h1 {
@@ -76,74 +76,138 @@
       background: #11151d;
       border-radius: 10px;
       text-align: center;
+      white-space: pre-line;
+      word-break: break-word;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="panel">
+<div class="panel">
 
-    <h1>🤖 پنل کنترل ربات</h1>
+  <h1>🤖 پنل کنترل ربات</h1>
 
-    <input
-      id="chatId"
-      type="text"
-      placeholder="Chat ID"
-    >
+  <input
+    id="githubToken"
+    type="password"
+    placeholder="GitHub Token"
+  >
 
-    <textarea
-      id="message"
-      placeholder="پیام..."
-    ></textarea>
+  <input
+    id="chatId"
+    type="text"
+    placeholder="Chat ID"
+  >
 
-    <button onclick="sendMessage()">
-      📤 ارسال پیام
-    </button>
+  <textarea
+    id="message"
+    placeholder="پیام..."
+  ></textarea>
 
-    <button onclick="botStatus()">
-      🟢 وضعیت ربات
-    </button>
+  <button onclick="sendMessage()">
+    📤 ارسال پیام
+  </button>
 
-    <div id="result" class="result">
-      آماده
-    </div>
-
+  <div id="result" class="result">
+    آماده
   </div>
 
-  <script>
+</div>
 
-    function show(text) {
-      document.getElementById("result").innerText = text;
-    }
+<script>
 
-    async function sendMessage() {
+async function sendMessage() {
 
-      const chatId =
-        document.getElementById("chatId").value.trim();
+  const githubToken =
+    document.getElementById("githubToken").value.trim();
 
-      const message =
-        document.getElementById("message").value.trim();
+  const chatId =
+    document.getElementById("chatId").value.trim();
 
-      if (!chatId || !message) {
-        show("❌ Chat ID و پیام را وارد کن.");
-        return;
-      }
+  const message =
+    document.getElementById("message").value.trim();
+
+  if (!githubToken) {
+    show("❌ GitHub Token را وارد کن.");
+    return;
+  }
+
+  if (!chatId || !message) {
+    show("❌ Chat ID و پیام را وارد کن.");
+    return;
+  }
+
+  show("⏳ در حال ارسال دستور به GitHub...");
+
+  // Repository
+  const owner = "srfyy460-spec";
+  const repo = "test1";
+
+  const url =
+    `https://api.github.com/repos/${owner}/${repo}/actions/workflows/command.yml/dispatches`;
+
+  try {
+
+    const response = await fetch(url, {
+
+      method: "POST",
+
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "Authorization": `Bearer ${githubToken}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        ref: "main",
+
+        inputs: {
+          chat_id: chatId,
+          message: message
+        }
+      })
+
+    });
+
+    if (response.status === 204) {
 
       show(
-        "📤 برای ارسال پیام، باید Workflow مربوط به دستور اجرا شود."
+        "✅ دستور ارسال شد.\n" +
+        "GitHub Actions در حال ارسال پیام است."
       );
-    }
 
-    async function botStatus() {
+    } else {
+
+      const error =
+        await response.text();
 
       show(
-        "🟢 پنل فعال است.\nربات توسط GitHub Actions اجرا می‌شود."
+        "❌ خطای GitHub:\n" +
+        error
       );
 
     }
 
-  </script>
+  } catch (error) {
+
+    show(
+      "❌ خطا در ارتباط با GitHub:\n" +
+      error.message
+    );
+
+  }
+}
+
+
+function show(text) {
+
+  document.getElementById("result").innerText = text;
+
+}
+
+</script>
 
 </body>
-      </html>
+  </html>
