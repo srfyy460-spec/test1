@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>پنل کنترل ربات</title>
+
+  <title>پنل ربات</title>
 
   <style>
     * {
@@ -28,20 +30,10 @@
       background: #191f2b;
       padding: 25px;
       border-radius: 20px;
-      box-shadow: 0 15px 50px rgba(0,0,0,.4);
     }
 
     h1 {
       text-align: center;
-      margin-top: 0;
-    }
-
-    .status {
-      text-align: center;
-      padding: 15px;
-      margin: 20px 0;
-      background: #11151d;
-      border-radius: 12px;
     }
 
     input,
@@ -83,137 +75,75 @@
       padding: 12px;
       background: #11151d;
       border-radius: 10px;
-      word-break: break-word;
+      text-align: center;
     }
   </style>
 </head>
 
 <body>
 
-<div class="panel">
+  <div class="panel">
 
-  <h1>🤖 پنل کنترل ربات</h1>
+    <h1>🤖 پنل کنترل ربات</h1>
 
-  <div id="status" class="status">
-    ⚪ آماده
+    <input
+      id="chatId"
+      type="text"
+      placeholder="Chat ID"
+    >
+
+    <textarea
+      id="message"
+      placeholder="پیام..."
+    ></textarea>
+
+    <button onclick="sendMessage()">
+      📤 ارسال پیام
+    </button>
+
+    <button onclick="botStatus()">
+      🟢 وضعیت ربات
+    </button>
+
+    <div id="result" class="result">
+      آماده
+    </div>
+
   </div>
 
-  <button onclick="checkBot()">
-    🔍 بررسی وضعیت ربات
-  </button>
+  <script>
 
-  <input
-    id="chatId"
-    type="text"
-    placeholder="Chat ID"
-  >
-
-  <textarea
-    id="message"
-    placeholder="متن پیام..."
-  ></textarea>
-
-  <button onclick="sendMessage()">
-    📤 ارسال پیام
-  </button>
-
-  <div id="result" class="result">
-    آماده دریافت دستور
-  </div>
-
-</div>
-
-<script>
-
-async function checkBot() {
-  setResult("⏳ در حال بررسی...");
-
-  try {
-    const response = await fetch("/api/bot-status");
-    const data = await response.json();
-
-    if (data.ok) {
-      document.getElementById("status").innerHTML =
-        "🟢 ربات آنلاین است";
-
-      setResult(
-        "نام ربات: " +
-        (data.bot?.first_name || "نامشخص")
-      );
-    } else {
-      document.getElementById("status").innerHTML =
-        "🔴 ربات در دسترس نیست";
-
-      setResult("❌ اتصال ناموفق");
+    function show(text) {
+      document.getElementById("result").innerText = text;
     }
 
-  } catch (error) {
-    document.getElementById("status").innerHTML =
-      "⚠️ API در دسترس نیست";
+    async function sendMessage() {
 
-    setResult(
-      "برای کنترل واقعی، درخواست باید از طریق GitHub Actions یا یک Backend اجرا شود."
-    );
-  }
-}
+      const chatId =
+        document.getElementById("chatId").value.trim();
 
+      const message =
+        document.getElementById("message").value.trim();
 
-async function sendMessage() {
+      if (!chatId || !message) {
+        show("❌ Chat ID و پیام را وارد کن.");
+        return;
+      }
 
-  const chatId =
-    document.getElementById("chatId").value.trim();
-
-  const message =
-    document.getElementById("message").value.trim();
-
-  if (!chatId || !message) {
-    setResult("❌ Chat ID و متن پیام را وارد کنید.");
-    return;
-  }
-
-  setResult("⏳ در حال ارسال...");
-
-  try {
-
-    const response = await fetch("/api/send-message", {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: message
-      })
-    });
-
-    const data = await response.json();
-
-    if (data.ok) {
-      setResult("✅ پیام با موفقیت ارسال شد.");
-    } else {
-      setResult(
-        "❌ ارسال نشد: " +
-        (data.description || "خطای نامشخص")
+      show(
+        "📤 برای ارسال پیام، باید Workflow مربوط به دستور اجرا شود."
       );
     }
 
-  } catch (error) {
+    async function botStatus() {
 
-    setResult(
-      "⚠️ API در دسترس نیست."
-    );
+      show(
+        "🟢 پنل فعال است.\nربات توسط GitHub Actions اجرا می‌شود."
+      );
 
-  }
-}
+    }
 
-
-function setResult(text) {
-  document.getElementById("result").innerHTML = text;
-}
-
-</script>
+  </script>
 
 </body>
-  </html>
+      </html>
